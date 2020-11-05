@@ -41,7 +41,7 @@ class BaseClient:
                 data: Optional[dict] = None,
                 streaming: bool = False,
                 response_callback: Optional[Callable] = None,
-                log_response: bool = False) -> None:
+                log_response: bool = False) -> Any:
         hook = self._get_grpc_hook()
         self.log.info("Calling gRPC service")
 
@@ -52,7 +52,13 @@ class BaseClient:
                              data=data)
 
         for response in responses:
-            self._handle_response(response, log_response, response_callback)
+            if streaming:
+                self._handle_response(response, log_response, response_callback)
+
+            if response_callback:
+                self._handle_response(response, log_response, response_callback)
+            else:
+                return response
 
     def _handle_response(self, response: Any, log_response,
                          response_callback) -> None:
