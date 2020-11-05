@@ -1,14 +1,14 @@
-#Python GRPC Client
+# Python GRPC Client
 
 A simple GRPC client to easy use.
 
-##Requirements:
+## Requirements:
 ```
 grpcio
 protobuf
 ```
 
-##How to use:
+## How to use:
 
 ```
 from grpc_client.bbase_client import BaseClient
