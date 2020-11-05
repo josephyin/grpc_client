@@ -26,47 +26,37 @@ class BaseClient:
     :type log_response: boolean
     """
 
-    def __init__(
-            self,
-            *,
-            host: str,
-            port: str,
-            stub_class: Callable,
-            call_func: str,
-            data: Optional[dict] = None,
-            streaming: bool = False,
-            response_callback: Optional[Callable] = None,
-            log_response: bool = False
-    ) -> None:
+    def __init__(self, *, host: str, port: str, stub_class: Callable) -> None:
         self.host = host
         self.port = port
         self.stub_class = stub_class
-        self.call_func = call_func
-        self.data = data or {}
-        self.streaming = streaming
-        self.log_response = log_response
-        self.response_callback = response_callback
-        self.log = logging.getLogger(
-            self.__class__.__module__ + '.' + self.__class__.__name__
-        )
+        self.log = logging.getLogger(self.__class__.__module__ + '.' +
+                                     self.__class__.__name__)
 
     def _get_grpc_hook(self) -> BaseHook:
-        return BaseHook(
-            self.host, self.port
-        )
+        return BaseHook(self.host, self.port)
 
-    def execute(self) -> None:
+    def execute(self,
+                call_func: str,
+                data: Optional[dict] = None,
+                streaming: bool = False,
+                response_callback: Optional[Callable] = None,
+                log_response: bool = False) -> None:
         hook = self._get_grpc_hook()
         self.log.info("Calling gRPC service")
 
         # grpc hook always yield
-        responses = hook.run(self.stub_class, self.call_func, streaming=self.streaming, data=self.data)
+        responses = hook.run(self.stub_class,
+                             call_func,
+                             streaming=streaming,
+                             data=data)
 
         for response in responses:
-            self._handle_response(response)
+            self._handle_response(response, log_response, response_callback)
 
-    def _handle_response(self, response: Any) -> None:
-        if self.log_response:
+    def _handle_response(self, response: Any, log_response,
+                         response_callback) -> None:
+        if log_response:
             self.log.info(repr(response))
-        if self.response_callback:
-            self.response_callback(response)
+        if response_callback:
+            response_callback(response)
