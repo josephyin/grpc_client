@@ -10,8 +10,8 @@ protobuf
 
 ## How to use:
 
-```
-from grpc_client.bbase_client import BaseClient
+```python
+from grpc_client.base_client import BaseClient
 
 def CallbackFunction(response):
     return response
