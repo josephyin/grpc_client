@@ -43,20 +43,23 @@ class BaseHook:
             data = {}
         with self.get_conn() as channel:
             stub = stub_class(channel)
-            try:
-                rpc_func = getattr(stub, call_func)
-                response = rpc_func(**data)
-                if not streaming:
-                    yield response
-                else:
-                    yield from response
-            except grpc.RpcError as ex:
-                self.log.exception(
-                    "Error occurred when calling the grpc service: %s, method: %s \
-                    status code: %s, error details: %s",
-                    stub.__class__.__name__,
-                    call_func,
-                    ex.code(),  # pylint: disable=no-member
-                    ex.details(),  # pylint: disable=no-member
-                )
-                raise ex
+            yield from self.call_rpc(stub, call_func, streaming, data)
+
+    def call_rpc(self, stub, call_func, streaming, data):
+        try:
+            rpc_func = getattr(stub, call_func)
+            response = rpc_func(**data)
+            if not streaming:
+                yield response
+            else:
+                yield from response
+        except grpc.RpcError as ex:
+            self.log.exception(
+                "Error occurred when calling the grpc service: %s, method: %s \
+                status code: %s, error details: %s",
+                stub.__class__.__name__,
+                call_func,
+                ex.code(),  # pylint: disable=no-member
+                ex.details(),  # pylint: disable=no-member
+            )
+            raise ex
